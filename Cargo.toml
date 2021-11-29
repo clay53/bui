@@ -1,0 +1,13 @@
+[package]
+name = "bui"
+version = "0.0.1"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+winit = "0.25"
+wgpu = "0.11"
+futures = "0.3"
+bytemuck = { version = "1.7", features = [ "derive" ] }
+constrainer = "0.0.2"
