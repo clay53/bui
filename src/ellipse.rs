@@ -12,7 +12,7 @@ pub struct EllipseRenderer {
 
 impl EllipseRenderer {
     pub fn new(device: &wgpu::Device, texture_format: wgpu::TextureFormat, resolution_buffer: &ResolutionBuffer, max_ellipse_count: u64) -> Self {
-        let shader = device.create_shader_module(&include_wgsl!("ellipse.wgsl"));
+        let shader = device.create_shader_module(include_wgsl!("ellipse.wgsl"));
 
         let ellipse_buffer = device.create_buffer(&wgpu::BufferDescriptor {
             label: Some("Ellipse Buffer"),
@@ -81,19 +81,19 @@ impl EllipseRenderer {
             })),
             vertex: wgpu::VertexState {
                 module: &shader,
-                entry_point: "main",
+                entry_point: "vert_main",
                 buffers: &[
                     ellipse_layout
                 ],
             },
             fragment: Some(wgpu::FragmentState {
                 module: &shader,
-                entry_point: "main",
-                targets: &[wgpu::ColorTargetState {
+                entry_point: "frag_main",
+                targets: &[Some(wgpu::ColorTargetState {
                     format: texture_format,
                     blend: Some(wgpu::BlendState::REPLACE),
                     write_mask: wgpu::ColorWrites::ALL,
-                }]
+                })]
             }),
             primitive: wgpu::PrimitiveState {
                 topology: wgpu::PrimitiveTopology::TriangleList,
@@ -101,7 +101,7 @@ impl EllipseRenderer {
                 front_face: wgpu::FrontFace::Ccw,
                 cull_mode: Some(wgpu::Face::Back),
                 polygon_mode: wgpu::PolygonMode::Fill,
-                clamp_depth: false,
+                unclipped_depth: false,
                 conservative: false,
             },
             depth_stencil: None,
@@ -109,7 +109,8 @@ impl EllipseRenderer {
                 count: 1,
                 mask: !0,
                 alpha_to_coverage_enabled: false,
-            }
+            },
+            multiview: None
         });
 
         Self {
@@ -129,14 +130,14 @@ impl EllipseRenderer {
         let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
             label: Some("Menu Render Pass"),
             color_attachments: &[
-                wgpu::RenderPassColorAttachment {
+                Some(wgpu::RenderPassColorAttachment {
                     view: &view,
                     resolve_target: None,
                     ops: wgpu::Operations {
                         load: loadop,
                         store: true,
                     }
-                }
+                })
             ],
             depth_stencil_attachment: None,
         });

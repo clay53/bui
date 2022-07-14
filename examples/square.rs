@@ -123,7 +123,7 @@ fn main() {
                         let mut encoder = renderer.device().create_command_encoder(&wgpu::CommandEncoderDescriptor {
                             label: Some("Render encoder"),
                         });
-                        rect_renderer.render_all(&mut encoder, &view);
+                        rect_renderer.render_all(&mut encoder, &view, wgpu::LoadOp::Clear(wgpu::Color::BLACK));
                         renderer.queue().submit(std::iter::once(encoder.finish()));
                         surface_texture.present();
                     },

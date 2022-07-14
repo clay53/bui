@@ -6,8 +6,20 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-winit = "0.25"
-wgpu = "0.11"
+# winit = "0.26"
+winit = { git = "https://github.com/rust-windowing/winit", rev = "c93ef47b9b05a561d8bfe85905cdfd38663b7c52" }
 futures = "0.3"
 bytemuck = { version = "1.7", features = [ "derive" ] }
 constrainer = "0.0.2"
+ttf-parser = "0.15"
+log = "0.4"
+owned_ttf_parser = "0.15"
+
+[dev-dependencies]
+env_logger = "0.9"
+
+[target.'cfg(target_arch="wasm32")'.dependencies]
+wgpu = { version = "0.13", features = ["webgl"] }
+
+[target.'cfg(not(target_arch="wasm32"))'.dependencies]
+wgpu = "0.13"

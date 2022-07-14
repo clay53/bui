@@ -10,27 +10,37 @@ impl Renderer {
         let size = window.inner_size();
         let instance = wgpu::Instance::new(wgpu::Backends::all());
         let surface = unsafe { instance.create_surface(window) };
-        let adapter = instance
-            .enumerate_adapters(wgpu::Backends::all())
-            .filter(|adapter| {
-                surface.get_preferred_format(&adapter).is_some()
-            })
-            .next()
-            .unwrap();
+        // let adapter = instance
+        //     .enumerate_adapters(wgpu::Backends::all())
+        //     .filter(|adapter| {
+        //         surface.get_preferred_format(&adapter).is_some()
+        //     })
+        //     .next()
+        //     .unwrap();
+        let backend = wgpu::util::backend_bits_from_env().unwrap_or_else(wgpu::Backends::all);
+        let adapter = wgpu::util::initialize_adapter_from_env_or_default(&instance, backend, Some(&surface)).await.unwrap();
+        let mut limits = wgpu::Limits::downlevel_webgl2_defaults();
+        limits.max_storage_textures_per_shader_stage = 8;
+        limits.max_texture_dimension_2d = 8192;
+        limits.max_compute_workgroup_size_x = 256;
+        limits.max_compute_workgroup_size_y = 256;
+        limits.max_compute_workgroup_size_z = 64;
+        limits.max_compute_workgroups_per_dimension = 65535;
+        limits.max_compute_invocations_per_workgroup = 256;
         let (device, queue) = adapter.request_device(
             &wgpu::DeviceDescriptor {
-                features: wgpu::Features::VERTEX_WRITABLE_STORAGE,
-                limits: wgpu::Limits::default(),
+                features: wgpu::Features::empty(),
+                limits,
                 label: None,
             },
             None,
         ).await.unwrap();
         let config = wgpu::SurfaceConfiguration {
             usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
-            format: surface.get_preferred_format(&adapter).unwrap(),
+            format: surface.get_supported_formats(&adapter)[0],
             width: size.width,
             height: size.height,
-            present_mode: wgpu::PresentMode::Immediate,
+            present_mode: wgpu::PresentMode::Fifo,
         };
         surface.configure(&device, &config);
 
@@ -47,10 +57,10 @@ impl Renderer {
     pub fn queue(&self) -> &wgpu::Queue { &self.queue }
     pub fn config(&self) ->&wgpu::SurfaceConfiguration { &self.config }
 
-    pub fn resize(&mut self, new_size: winit::dpi::PhysicalSize<u32>) {
-        if new_size.width > 0 && new_size.height > 0  {
-            self.config.width = new_size.width;
-            self.config.height = new_size.height;
+    pub fn resize(&mut self, width: u32, height: u32) {
+        if width > 0 && height > 0  {
+            self.config.width = width;
+            self.config.height = height;
             self.reconfigure();
         }
     }
